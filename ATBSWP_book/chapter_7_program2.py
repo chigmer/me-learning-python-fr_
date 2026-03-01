@@ -17,25 +17,15 @@ def countstuff(inventory:dict) -> None:
                 raise ValueError("your inventory is missing item amounts.")
         print(f"total: {count}")
     except Exception as e:
-        print(f"im not going to bother what made you get this error message, figure it out yourself. \n {e}")
-        
+        print(f"im not going to bother what made you get this error message, figure it out yourself. \n {e}")        
         
 #import intelligence
-def add_to_inventory(inventory_2, added_items):
-    
-    
-    
+def add_to_inventory(inventory_2, added_items):            
     for item in added_items:
         inventory_2.setdefault(item,0)
         inventory_2[item] += 1
     return inventory_2
-            
-        
-    
-
-
-
-         
+                   
          
 if __name__ == "__main__":    
     inv = {'gold coin': 42, 'rope': 1}
@@ -44,3 +34,4 @@ if __name__ == "__main__":
     print(dragon_loot)
     add_to_inventory(inv, dragon_loot)
     countstuff(inv)
+ 
