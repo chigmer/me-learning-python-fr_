@@ -1,12 +1,9 @@
-import re, sys
-def is_it_palindrome(word:str)-> bool:
-    try:
-        clean = re.sub(r'[^a-zA-Z0-9\s]', '', word).replace(" ", "").lower()
-    except Exception as e:
-        print(f"something happened: {e}")
-        sys.exit()
+import re
+def is_it_palindrome(word:str)-> bool:        
+    
     if not isinstance(word,str):
         raise TypeError("thou input is not a string")
+    clean = re.sub(r'[^a-zA-Z0-9]', '', word).lower()
     return clean == clean[::-1]
 
     
@@ -18,6 +15,6 @@ if __name__ == "__main__":
    print(is_it_palindrome("A man, a Plan, a canal: Panama"))
     
 
-
+#regex trick learned online(AI)
         
         
