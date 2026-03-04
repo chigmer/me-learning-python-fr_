@@ -70,12 +70,89 @@ apples Alice dogs oranges Bob cats cherries Carol moose
 banana David goose Hint: Your code will first have to find the longest string in each of the
 inner lists so that the whole column can be wide enough to fit all the strings. You can store the maximum width of each column as a list of integers. The printTable() function can begin with colWidths = [0] * len(tableData), which will create a list containing the same number of 0 values as the number of inner lists in tableData. That way, colWidths[0] can store the width of the longest string in tableData[0], colWidths[1] can store the width of the longest string in tableData[1], and so on. You can then find the largest value in the colWidths list to find out what integer width to pass to the rjust() string method."""
 
-def printTable(table:list) -> None:
-    some_list = []
-    for i in table:
-        for item in i:
-            some_list.append(item)
-    print(some_list)
+#when i look back at this. ill be embarassingly confused. ill fix that by adding some comments here and there
+def printTable(table: list) -> None:
+    # table is expected to be a list of lists.
+    # IMPORTANT: This structure is COLUMN-oriented.
+    # Meaning:
+    # table[0] = first column
+    # table[1] = second column
+    # table[col][row] = element at (column, row)
+    #
+    # This is not the usual row-major structure people imagine.
+    # So mentally rotate it 90 degrees.
+
+    # Create a list to store the maximum width for each column.
+    # len(table) = number of columns.
+    # So colWidths[i] will store the width of column i.
+    colWidths = [0] * len(table)
+
+    # Iterate through each column index.
+    for col in range(len(table)):
+        # table[col] is the entire column (a list of strings).
+        # We now scan that column to find the longest string in it.
+
+        for string in table[col]:
+            # Compare the length of the current string
+            # against the largest length seen so far in this column.
+            if len(string) > colWidths[col]:
+                # If this string is longer, update the stored max width.
+                colWidths[col] = len(string)
+
+    # At this point:
+    # colWidths looks something like [8, 5, 5]
+    # Meaning:
+    # Column 0 needs width 8
+    # Column 1 needs width 5
+    # Column 2 needs width 5
+    #
+    # We now know how wide each column must be
+    # so that right-justification aligns properly.
+
+    # Now we print row by row.
+    # IMPORTANT: Since the structure is column-oriented,
+    # the number of rows equals the length of any one column.
+    # We assume all columns have equal length.
+    for row in range(len(table[0])):
+        # Print a newline before starting the row.
+        # (This creates a blank line before the first row too.)
+        print()
+
+        # Now iterate across columns for this specific row.
+        for column in range(len(table)):
+            # table[column][row] accesses:
+            # - specific column
+            # - specific row inside that column
+            #
+            # rjust(colWidths[column]) pads the string
+            # on the left so its total width equals the column's max width.
+            #
+            # end=" " prevents newline and adds space after each cell.
+            print(table[column][row].rjust(colWidths[column]), end=" ")
+
+
+            
+            
+            
+            
+        
+    
+    
+                
+        
+    
+  
+    
+    
+        
+    
+     
+        
+        
+       
+        
+    
+        
             
             
         
@@ -86,3 +163,4 @@ def printTable(table:list) -> None:
 if __name__ == "__main__":
     tableData = [['apples', 'oranges', 'cherries', 'banana'], ['Alice', 'Bob', 'Carol', 'David'], ['dogs', 'cats', 'moose', 'goose']]
     printTable(tableData)
+    #no comments needed. a 10 year old knows what this is.
