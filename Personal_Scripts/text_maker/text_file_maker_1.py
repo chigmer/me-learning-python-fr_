@@ -8,7 +8,6 @@ print("Text File Generator\nmade on Mar. 11, 2026")
 
 import os
 
-print(os.getcwd())
 
 def validate_word(text:str) -> bool:
     if not isinstance(text, str):
