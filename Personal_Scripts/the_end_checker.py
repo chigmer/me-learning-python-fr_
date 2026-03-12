@@ -2,7 +2,7 @@
 #check
 
 import re
-def is_end(text:str) -> bool:
+def is_end(text:str) -> tuple:
     end_pattern = re.compile(r"""
 
 (the[.\s]+end[.!?\s]*$) #accepts any character like punctuation or symbols as a fix
