@@ -1,17 +1,27 @@
 "Regex Version of the strip() Method Write a function that takes a string and does the same thing as the strip() string method. If no other arguments are passed other than the string to strip, then the function should remove whitespace characters from the beginning and end of the string. Otherwise, the function should remove the characters specified in the second argument to the function."
 #idea, what if i use the caret symbol, and combine it with sub()
 import re
-def re_strip(text:str, character:str) -> str: #returnsmodified string 
+def re_strip(text:str, character:str = None) -> str: #returnsmodified string 
     if not isinstance(text, str):
         raise ValueError(f"expected str, got: {type(text).__name__}")
-    if not isinstance(character, str):
-        raise ValueError(f"expected str, got: {type(character).__name__}")
-    if not character:
-        return re.sub(f"{character}", "", text)
+    if character is not None and not isinstance(character,str):
+        raise ValueError(f"expected str/None, got: {type(character).__name__}")
+    if character is None or character  == "":
+        pattern = r"^\s+|\s+$"
+    else:
+        esc = re.escape(character)
+        #initially didnt know this
+        pattern = f"^{esc}+|{esc}+$"
+     
+    return re.sub(pattern, "", text)
+        
+        
+    
+   
         
 #alert: using google on how to use re.sub()
 #alert: searching google on how to make arguments optional
-    return re.sub(r"^\s+|\s+$", "", text)
+    
     #re.sub continues searching after match, the pipe symbol only picking one pattern or the other is irrelevant
         
         
@@ -19,8 +29,9 @@ def re_strip(text:str, character:str) -> str: #returnsmodified string
 
 
 if __name__ == "__main__":
-    print(len(re_strip("      yee-haw       ", " ")))
-    print(len(("      yee-haw       ")))
+    repl = input("What to strip? (type nothing for whitespace): ")
+    space_count = len(re_strip(input("Type anything: "),repl))
+    print(f"Number of Characters: {space_count}, Character Stripped: \"{repl}\"")
     
     
 
