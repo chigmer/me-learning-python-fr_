@@ -11,8 +11,7 @@ def re_strip(text:str, character:str = None) -> str: #returnsmodified string
     else:
         esc = re.escape(character)
         #initially didnt know this
-        pattern = f"^{esc}+|{esc}+$"
-     
+        pattern = rf"^[{esc}]+|[{esc}]+$"     
     return re.sub(pattern, "", text)
         
         
@@ -31,7 +30,7 @@ def re_strip(text:str, character:str = None) -> str: #returnsmodified string
 if __name__ == "__main__":
     repl = input("What to strip? (type nothing for whitespace): ")
     space_count = len(re_strip(input("Type anything: "),repl))
-    print(f"Number of Characters: {space_count}, Character Stripped: \"{repl}\"")
+    print(f"Number of Characters: {space_count}, Character(s) Stripped: \"{repl}\"")
     
     
 
