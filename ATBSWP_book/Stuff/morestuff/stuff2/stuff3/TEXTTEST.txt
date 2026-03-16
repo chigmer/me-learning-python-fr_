@@ -1,0 +1,3 @@
+ahh hello there. 
+
+These nested directories were made from a program using os.makedirs()
