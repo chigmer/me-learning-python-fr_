@@ -35,10 +35,12 @@ while True:
     
 
 
-p = Path.cwd() / 'IOprojects' / user
-
-if not p.exists():
-    create_dir(p) #parents = True creates intermediate directories if it doesnt exist.
+p = Path("/storage/shared/00py_shi/me-learning-python-fr_") / 'ATBSWP_book' / user
+try:
+    if not p.exists():
+        create_dir(p) #parents = True creates intermediate directories if it doesnt exist.
+except Exception as e:
+    print(e)
 #exist_ok=True prevents FileExistsError if file/directory already exists
 
 #calling mkdir() like on text.mkdir() only works if the object(or text) is a Path object.
