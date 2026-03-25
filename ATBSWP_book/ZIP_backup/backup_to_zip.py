@@ -27,6 +27,14 @@ def index() -> int:
         return i
 
 def backup_to_zip(sources: list[Path]):
+    EXCLUDED_DIRS = {
+    "myZipFiles",
+    "indexdata",
+    "__pycache__",
+    ".venv",    
+    ".mypy_cache",
+    ".pytest_cache",
+}
     now = datetime.now().strftime("%Y_%m_%d-%H%M")
     i = index()
     p = Path("myZipFiles")
@@ -41,9 +49,13 @@ def backup_to_zip(sources: list[Path]):
                 continue
             if source.is_file():
                 zf.write(source,arcname=source.name, compress_type=ZIP_DEFLATED,compresslevel=9)
+                print(f"zipped {source.name}")
             else:
                 for f in source.rglob("*"):
+                    if any(part in EXCLUDED_DIRS for part in f.parts):
+                        continue
                     zf.write(f,arcname = f.relative_to(source),compress_type=ZIP_DEFLATED,compresslevel=9)
+                    print(f"zipped {f.name}")
 if __name__ == "__main__":
     import random
     from pathlib import Path
