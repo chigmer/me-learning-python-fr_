@@ -15,9 +15,7 @@ def find_files(path:Path=Path.cwd(),ext: str='txt') -> list:
     elif not path.exists():
         return
         
-    files = list(path.rglob(f'*.{ext}'))
-    if not files:
-        return
+    files = list(path.rglob(f'*.{ext}'))   
     return files
 def make_test_txt() -> list:
     dates = generate_dates(50)
@@ -33,7 +31,7 @@ if __name__ == "__main__":
     import re
     import shutil
     pattern = re.compile(r'''
-    ([\w-]+)# group 1  
+    ([\w]+)# group 1  
     (\d{2}) # group 2
     -
     (\d{2}) # group 3
