@@ -20,4 +20,5 @@ def generate_dates(num_dates: int):
 
 # Example usage
 date_list = generate_dates(50)
-print(date_list)
+if __name__ == "__main__":
+    print(date_list)

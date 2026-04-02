@@ -60,7 +60,7 @@ if __name__ == "__main__":
     i = 1
     for f in Path.cwd().rglob("*.txt"):
         if f.name in new_names:
-            print(f"{i}. file {f.name} is a test file. deleting...")
+            print(f"{i}. file {f.name} is a test file. \ndeleting...")
             f.unlink()
             i += 1
         
