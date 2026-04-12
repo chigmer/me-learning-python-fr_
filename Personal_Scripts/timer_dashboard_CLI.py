@@ -1,91 +1,69 @@
-#a CLI script that allows you to:
-#set a timer 
-#positional args: 'task', the task thou is doing
-# plus something like [int] hrs [int] min [int] sec, default is 0,but positional since you need atleast one value,max vals is 48-120-120, doubled everything
-#update: you need ALL values, this solves ambiguity, is easier to understand and easy to implement in code
-#content: refreshes every second, displays task and a live counter in format HH:MM:SS,  if M and S then MM:SS
-#flags: --warning -w, caps lock mode + funny but serious lines for motivation
-
+#!/usr/bin/env/python3
 import argparse
+import time
+import random
+import sys
+
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Timer script! Better than your clock app.")
-# Add arguments here
-    parser.add_argument(
-    "task", 
-    type=str, 
-    help="The name of the task you plan to do.",    
-    )  
-    parser.add_argument(
-    "time",
-    type=int,
-    nargs=3,
-    help="usage: <hrs> <min> <sec>, all args required!"
-    )
-    #adding three flags for each unit of time is too long for a line. imo
-    parser.add_argument(
-    "-w",
-    "--warning",
-    action="store_true",
-    help="Optional flag for activating warning mode."
-    )
+    parser.add_argument("task", type=str, help="The name of the task.")  
+    parser.add_argument("time_vals", type=int, nargs=3, metavar=('HRS', 'MIN', 'SEC'),
+                        help="usage: <hrs> <min> <sec>, all args required!")
+    parser.add_argument("-w", "--warning", action="store_true", help="Activate warning mode.")
+    return parser.parse_args()
 
-    args = parser.parse_args()
-    return args
+def format_time(total_seconds):
+    """Converts total seconds into a list of [H, M, S]."""
+    hrs = total_seconds // 3600
+    mins = (total_seconds % 3600) // 60
+    secs = total_seconds % 60
+    return [hrs, mins, secs]
 
-def format_time(time:int): #accepts total secs"
-    total = time
-    new_time = []
-    #total = total seconds
-    
-    new_time.append(total//3600)
-    new_time.append((total%3600)//60)
-    new_time.append((total%3600)%60)
-    return new_time
-        
-        
-def display_time(time:list):
-    if time[0]:
-        counter = f"{time[0]}:{time[1]:02}:{time[2]:02}"
-    elif time[1]:
-        counter = f"{time[1]:02}:{time[2]:02}"
-    else:
-        counter = f"{time[2]:02}"
-        
-    return counter
-   
-    
-        
-        
-if __name__ == "__main__":
-    import time
-    import random
-    #own module
-    from soft_words import word_bank
+def display_time(time_list):
+    """Formats the time list into a readable string."""
+    h, m, s = time_list
+    if h:
+        return f"{h}:{m:02}:{s:02}"
+    return f"{m:02}:{s:02}"
+
+def main():
+    #  soft_words is a local file
+    try:
+        from soft_words import word_bank
+    except ImportError:
+        word_bank = ["DO YOUR WORK", "TICK TOCK", "STOP SLACKING"]
+        #portability just in case module doesnt exist
+        #or isnt in the same directory
+
     args = parse_args()
     
-    
-    
-    #test before i write real code so i dont waste an hour debugging
-    #
-    #args:
-    #task-str
-    #time- [H,M,S]
-    #warning-toggle boolean
-    total = args.time[0] * 3600 + args.time[1] * 60 + args.time[2]
-    words =word_bank
+    # Calculate total seconds from the 'time_vals' list
+    h, m, s = args.time_vals
+    total = h * 3600 + m * 60 + s
     chosen_word = ""
-    
-    while total >= 0:
-        if args.warning:
-            if random.random() < 0.2:
-                chosen_word = random.choice(words)        
-        current_time = format_time(total)   
-        display_current_time = display_time(current_time)             
-    # convert and display here
-        
-        print(f"\r{args.task} |  {display_current_time} {chosen_word}",end="",flush=True)
-        
-        time.sleep(1)
-        total -= 1
-    print("\nbeep boop beep. alarm is done, hopefully your work is done too.")
-    
+
+    try:
+        while total >= 0:
+            if args.warning and random.random() < 0.2:
+                chosen_word = random.choice(word_bank)
+            
+            current_time = format_time(total)   
+            display_str = display_time(current_time)             
+            
+            # Using sys.stdout.write is sometimes cleaner for \r, 
+ 
+            print(f"\r{args.task} | {display_str} {chosen_word}", end="", flush=True)
+            
+            time.sleep(1)
+            total -= 1
+            
+        print("\nbeep boop beep. Alarm is done. Go outside.")
+
+    except KeyboardInterrupt:
+        # Boilerplate for "User got bored and hit Ctrl+C"
+        print("\nTimer aborted. Quitting before you actually finished anything?\nif youre the creator, i'll allow it.")
+
+if __name__ == "__main__":
+    main()
