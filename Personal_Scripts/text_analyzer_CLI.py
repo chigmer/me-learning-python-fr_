@@ -1,6 +1,7 @@
 import sys
-import re
 from pathlib import Path
+#text_analyzer_CLI.py
+#the most barebones as of now..
 args = sys.argv
 if len(args) != 2:
     print("hey. you did it wrong")

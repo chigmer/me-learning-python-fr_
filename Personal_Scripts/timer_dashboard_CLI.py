@@ -1,8 +1,8 @@
-#!/usr/bin/env/python3
+#!/usr/bin/env python3
 import argparse
 import time
 import random
-import sys
+#timer_dashboard_CLI.py
 
 
 
