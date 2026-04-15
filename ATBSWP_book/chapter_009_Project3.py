@@ -3,6 +3,7 @@ import re
 #I excluded the pyperclip lines. nice to have though.
 #Create email regex.
 
+
 email_re = re.compile(r'''
 
 [a-zA-Z0-9._%+-]+  
