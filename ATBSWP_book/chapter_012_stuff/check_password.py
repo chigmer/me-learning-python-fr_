@@ -29,7 +29,7 @@ def is_strong_password(password:str):
      if is_min_eightchar(password):
          if is_upper_and_lower(password):
             if has_digit(password):
-                return True
+                return True, "Your password is strong"
             else:
                 return False, "password doesn't have a number"           
          else:
@@ -42,7 +42,7 @@ def main():
     #bool, message
     strong,message = is_strong_password(user)
     if strong:
-        print("Your password is strong.")
+        print(message)
     else:
         print(f"Your password is not strong: {message}")
         
