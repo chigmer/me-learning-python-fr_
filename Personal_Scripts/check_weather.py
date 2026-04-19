@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import sys
-from datetime import date
+from datetime import date,datetime
 import shelve
 import time
 import requests
@@ -17,7 +17,7 @@ env_path = script_dir.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
 #print(f"Looking for .env at: {env_path}")
-print(f"Key found: {os.getenv('OWM_KEY') is not None}\n")
+#print(f"Key found: {os.getenv('OWM_KEY') is not None}\n")
 if os.getenv('OWM_KEY') is not None:
     API_KEY = os.getenv('OWM_KEY')
 else:
@@ -110,22 +110,44 @@ def main():
             res.raise_for_status()                       
             
             data = res.json()
+            #print(f"response:{data}")
             print("fetching successful.\n")
             # Extract safely
-            current_temp = data["main"]["temp"]
-            current_main = data["weather"][0]["main"]
-            current_desc = data["weather"][0]["description"]
+            
 
-            #
+# ... (inside main after data = res.json())
 
-            print(f"--- Current Weather at {data["name"]}, {data["sys"]["country"]}---\n")
-            print(f"Temp: {current_temp}°C")
-            print(f"Condition: {current_main} ({current_desc})")  
-                      
-            if "alerts" in data:
-                print("Alerts available:")
-                for alert in data["alerts"]:
-                    print(f"ALERT: {alert['event']} - {alert['sender_name']}")
+
+            main = data.get("main", {})
+            temp = main.get("temp")
+            feels_like = main.get("feels_like")
+            humidity = main.get("humidity")
+            pressure = main.get("pressure")
+
+            wind_speed = data.get("wind", {}).get("speed")
+            wind_kmh = round(wind_speed * 3.6, 2)
+
+# Convert Unix timestamps to readable time (H:M)
+            sunrise = datetime.fromtimestamp(data["sys"]["sunrise"]).strftime('%I:%M %p')
+            sunset = datetime.fromtimestamp(data["sys"]["sunset"]).strftime('%I:%M %p')
+
+# Rain Check (Optional Key)
+# returns '0' if the 'rain' key is missing from the API response
+            rain_1h = data.get("rain", {}).get("1h", 0)
+
+            print(f"--- Weather Report: {data['name']}, {data['sys']['country']} ---")
+            print(f"Condition: {data['weather'][0]['main']} ({data['weather'][0]['description']})")
+            print(f"Temperature: {temp}°C (Feels like {feels_like}°C)")
+            print(f"Humidity: {humidity}% | Pressure: {pressure} hPa")
+            print(f"Wind Speed: {wind_kmh} km/h")
+
+            if rain_1h > 0:
+                print(f"Precipitation (last 1h): {rain_1h}mm")
+
+            print(f"Sun Cycle:  {sunrise} |  {sunset}")
+            print("-" * 35)
+
+
 
         except Exception as e:
             print(f"bad network or API key: {e}")
