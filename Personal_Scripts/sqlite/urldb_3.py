@@ -4,7 +4,7 @@ import sqlite3
 import test_url_and_return_data as d
 conn = sqlite3.connect("seconddb_reference.db")
 cur = conn.cursor()
-dump = d.scan_target_URL("https://en.wikipedia.org/wiki/330_West_42nd_Street",10)
+dump = d.scan_target_URL("https://en.wikipedia.org/wiki/330_West_42nd_Street",limit = 20, offset = 60)
 #ive yet to make a third arg that specifies the offset, will do it sometime ig
 #print(dump)
 #print(d.reference)
