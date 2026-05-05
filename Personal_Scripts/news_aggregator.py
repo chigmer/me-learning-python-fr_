@@ -1,6 +1,3 @@
-
-#search news outlets, hardcoded for now and give me a polished feed of daily news
-#use argparse for optional flags. would figure it out eventually
 import argparse
 import random
 import newspaper
@@ -8,7 +5,11 @@ from newspaper import Article
 import feedparser
 import textwrap
 import time
-import requests
+import re
+
+def strip_tags(text):
+    return re.sub(r'<[^>]*>', '', text)
+
 def make_delay():
     base = random.triangular(0.9, 2.9, 1.6)
     return round(base, 2)
@@ -26,7 +27,7 @@ def get_full_text(url):
         if not article.text:
             return "[Extraction Failed: No text found. Might be a paywall.]"
         
-        # Utilitarian formatting: Wrap the text so it fits the terminal nicely
+        # Wrap the text so it fits the terminal nicely
         wrapper = textwrap.TextWrapper(width=80, initial_indent="    ", subsequent_indent="    ")
         return wrapper.fill(article.text)
     except Exception as e:
@@ -45,7 +46,7 @@ def setup_args():
     # Selection Logic
     targets = parser.add_mutually_exclusive_group()
     targets.add_argument("-o", "--outlets", nargs="+",
-                        choices=['ap', 'reuters', 'bbc', 'npr', 'aljazeera', 'wsj', 'propublica'],
+                        choices=['wired','intercept', 'icij', 'bbc', 'npr', 'aljazeera', 'wsj', 'propublica'],
                         help="Specific sources to fetch")
                         
     targets.add_argument("--all", action="store_true", help="Fetch from every configured source")
@@ -57,30 +58,34 @@ def setup_args():
                         help="Detail level: titles only, brief snippets, or full text (if possible)")
     
     # Utilities
-    parser.add_argument("--browser", action="store_true", help="Open the top story of each source in your browser")
+    #parser.add_argument("--browser", action="store_true", help="Open the top story of each source in your browser")
+    #i dont really need to open it in the browser?
     
     #parser.add_argument("--database", action="store_true", help="Log these headlines to your SQLite archive")
 
     return parser.parse_args()
 NEWS_FEEDS = {
-    "ap": "https://rsshub.app/apnews/topics/apf-topnews",
-    "reuters": "https://www.reutersagency.com/feed/",
+    "wired": "https://www.wired.com/feed/rss",
+    "intercept":"https://theintercept.com/feed/?rss",
+    "icij": "https://www.icij.org/feed/",
     "bbc": "http://feeds.bbci.co.uk/news/rss.xml",
     "npr": "https://feeds.npr.org/1001/rss.xml",
     "aljazeera": "https://www.aljazeera.com/xml/rss/all.xml",
     "wsj": "https://feeds.a.dj.com/rss/RSSWorldNews.xml",
     "propublica": "https://feeds.propublica.org/propublica/main"
 }
-
+def safe_date(entry):
+    return entry.get('published_parsed') or (0,) * 9
 def fetch_xml(link):
     try:
     # Use a timeout (in seconds) so you don't hang for 5 minutes
-        feedparser.USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-        extra_headers = {
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Referer': 'https://www.google.com/' 
-}
-        res = feedparser.parse(link,request_headers=extra_headers)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://www.google.com/'
+        }
+
+        res = feedparser.parse(link,request_headers=headers)
   
     
     except Exception as e:
@@ -102,7 +107,7 @@ def main():
     
     for outlet,URL in to_fetch.items():
         time.sleep(make_delay())
-        print(f"fetching contents on {outlet.upper()}\n")
+        print(f"\n\nfetching contents on {outlet.upper()}\n")
         xml = fetch_xml(URL)
         #quick check to see if if we got anything
         if not xml:
@@ -120,25 +125,25 @@ def main():
             elif not hasattr(xml,"entries"):
                 print(f"{outlet} has no entries, skipping.")
                 continue
-        xml.entries.sort(key=lambda x: x.get('published_parsed', 0), reverse=True)
+        xml.entries.sort(key=safe_date, reverse=True)
         #copied this line above
-        articles = []
         i = 1
         print(f"Lookup for {outlet} is successful.\n\n")
+        print(f"{outlet.upper()}\n\n")
         time.sleep(1)
         #parser.add_argument("--mode", choices=['titles', 'brief', 'full'], default='brief',
                        
         for story in xml.entries[:args.limit]:
-            timestamp = time.strftime("%Y-%m-%d %H:%M", story.published_parsed) if hasattr(story, 'published_parsed') else "N/A"
-            print("—" * 35)
+            timestamp = time.strftime("%Y-%m-%d %H:%M", story.published_parsed) if story.get('published_parsed') else "N/A"
+            print("—" * 50)
             print(f"\nHeadline {i}: {story.title}\n")
             print(f"Date: {timestamp}\n")
             i += 1
             print(f"Author: {story.get('author','Unknown')}\n\n")
             if not args.mode == 'titles':                      
-                print(f"Summary:\n{story.get('summary','no summary available')}\n")
+                print(f"Summary:\n{strip_tags(story.get('summary','no summary available'))}\n")
             if args.mode == "brief" or args.mode == "titles":
-                print(f"Link: {story.get('link','no link available')}")
+                print(f"Link: {story.get('link','no link available')}\n")
             
                 continue
             elif args.mode == 'full':
@@ -167,7 +172,7 @@ def main():
     #-l = limit
     #-q = query, just keywords is fine
     #--mode = either titles, brief, or full text
-    #--browser, open in browser
+    
     
     #LOG each one to the db
 if __name__ == "__main__":
