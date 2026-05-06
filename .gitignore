@@ -210,3 +210,6 @@ __marimo__/
 .indexdataOWM/
 xkcd_comics/
 .flickr_images/
+
+#db files are unnecessary rn
+*.db

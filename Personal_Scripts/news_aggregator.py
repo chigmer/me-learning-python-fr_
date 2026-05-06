@@ -6,7 +6,31 @@ import feedparser
 import textwrap
 import time
 import re
+import sqlite3
+from datetime import datetime
+import hashlib
+def get_now():
+    """Returns the current UTC time formatted for SQLite storage."""
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+def insert_to_db(data:list[tuple]):
+    conn = sqlite3.connect("news_aggregator_data.db")
+    cur = conn.cursor()
+    for article in data:
+        assert len(article) == 9
+        
+    cur.execute("""CREATE TABLE IF NOT EXISTS articles (    guid TEXT PRIMARY KEY,        -- The 'id' from feedparser (Universal Unique ID)
+    outlet TEXT NOT NULL,         -- 'bbc', 'wired', etc.
+    title TEXT NOT NULL,          -- The headline
+    author TEXT,                  -- oh wow i wonder what this could be
+    link TEXT ,             -- link to full article
+    published_at TEXT,        -- When the outlet says it was posted
+    captured_at TEXT, -- When one fetched it
+    summary TEXT,                 -- The cleaned RSS snippet
+    full_content TEXT         )""")
+    cur.executemany("""INSERT OR IGNORE INTO articles VALUES (?,?,?,?,?,?,?,?,?)""",data)
+    conn.commit()
+    
 def strip_tags(text):
     return re.sub(r'<[^>]*>', '', text)
 
@@ -94,8 +118,13 @@ def fetch_xml(link):
         print(f"something broke: {e}")
         return None
     return res
+def generate_fingerprint(entry):
+    uid = entry.get('id')
+    return uid if uid else hashlib.md5(entry.get('title', 'Unnamed').encode()).hexdigest()
+
 def main():
     args = setup_args()
+    article_data = []
     if args.outlets:
         # Create a sub-dictionary of just the chosen outlets
         to_fetch = {k: NEWS_FEEDS[k] for k in args.outlets}
@@ -134,47 +163,51 @@ def main():
         #parser.add_argument("--mode", choices=['titles', 'brief', 'full'], default='brief',
                        
         for story in xml.entries[:args.limit]:
+            
+            captured_at = get_now()
             timestamp = time.strftime("%Y-%m-%d %H:%M", story.published_parsed) if story.get('published_parsed') else "N/A"
+            author = story.get('author','Unknown')
+            headline = story.title
+            summary = strip_tags(story.get('summary','no summary available'))
+            link = story.get('link', None)
+            
             print("—" * 50)
-            print(f"\nHeadline {i}: {story.title}\n")
+            print(f"\nHeadline {i}: {headline}\n")
             print(f"Date: {timestamp}\n")
             i += 1
-            print(f"Author: {story.get('author','Unknown')}\n\n")
+            print(f"Author: {author}\n\n")
             if not args.mode == 'titles':                      
-                print(f"Summary:\n{strip_tags(story.get('summary','no summary available'))}\n")
+                print(f"Summary:\n{summary}\n")
             if args.mode == "brief" or args.mode == "titles":
                 print(f"Link: {story.get('link','no link available')}\n")
+                full_text = None
             
-                continue
-            elif args.mode == 'full':
-                link = story.get("link",0)
+  
+            
+            elif args.mode == 'full':                
                 if link:
                     print("Fetching full article text... (patience is a virtue)")
                     time.sleep(make_delay())
                     full_text = get_full_text(story.link)
                 # Just show the first 1000 characters so your terminal doesn't explode
                     if full_text:
-                        print(f"Full Text:\n{full_text}") 
-                else:
+                        print(f"Full Text:\n{full_text}")
+                    else:
+                        full_text = None
+                        print("unable to fetch full text.\n\n") 
+                else:                          
+                    full_text = None              
                     print("no link available")
+            #guid,outlet,title,link,published_at,captured_at,summary,full_content
+                        
+            guid = generate_fingerprint(story)
             
-           
-        
-            #would immediately fix if i see tags
-        
-            
-                
-                                        
-                
-            
-    
-    #-o = outlets
-    #-l = limit
-    #-q = query, just keywords is fine
-    #--mode = either titles, brief, or full text
-    
-    
-    #LOG each one to the db
+            data = (guid,outlet,headline,author,link,timestamp,captured_at,summary,full_text)
+            article_data.append(data)
+    time.sleep(2.769696969420)  #funny, right?    
+    if article_data:  
+        print(f"aggregation completed!\nArchiving {len(article_data)} article(s) to database.")
+        insert_to_db(article_data)                         
 if __name__ == "__main__":
     main()
 
