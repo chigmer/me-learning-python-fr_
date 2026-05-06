@@ -85,7 +85,7 @@ def setup_args():
     #parser.add_argument("--browser", action="store_true", help="Open the top story of each source in your browser")
     #i dont really need to open it in the browser?
     
-    #parser.add_argument("--database", action="store_true", help="Log these headlines to your SQLite archive")
+    parser.add_argument("-db","--database", action="store_true", help="Log these headlines to your SQLite archive")
 
     return parser.parse_args()
 NEWS_FEEDS = {
@@ -205,7 +205,7 @@ def main():
             data = (guid,outlet,headline,author,link,timestamp,captured_at,summary,full_text)
             article_data.append(data)
     time.sleep(2.769696969420)  #funny, right?    
-    if article_data:  
+    if article_data and args.database:  
         print(f"aggregation completed!\nArchiving {len(article_data)} article(s) to database.")
         insert_to_db(article_data)                         
 if __name__ == "__main__":
