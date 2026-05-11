@@ -7,15 +7,21 @@ import textwrap
 import time
 import re
 import sqlite3
-from datetime import datetime
+from datetime import datetime,timedelta
 import hashlib
 def get_now():
     """Returns the current UTC time formatted for SQLite storage."""
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+def get_expiration():
+    """Returns formatted UTC time subtracted exactly 3 days behind for SQLite DELETE logic """
+    now = datetime.now()   
+    expiration = now - timedelta(days=3)
+    return expiration.strftime('%Y-%m-%d %H:%M:%S')
 
 def insert_to_db(data:list[tuple]):
     conn = sqlite3.connect("news_aggregator_data.db")
     cur = conn.cursor()
+    time = get_expiration()
     for article in data:
         assert len(article) == 9
         
@@ -29,6 +35,7 @@ def insert_to_db(data:list[tuple]):
     summary TEXT,                 -- The cleaned RSS snippet
     full_content TEXT         )""")
     cur.executemany("""INSERT OR IGNORE INTO articles VALUES (?,?,?,?,?,?,?,?,?)""",data)
+    cur.execute("DELETE FROM articles WHERE captured_at <= ?",(time,))
     conn.commit()
     
 def strip_tags(text):

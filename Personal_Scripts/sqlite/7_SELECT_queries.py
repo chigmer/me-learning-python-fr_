@@ -56,14 +56,17 @@ Find duplicate titles if any exist ✓"""
     outlets = [outlet[0] for outlet in cur] 
     print("\n\n") 
     article_count = []
+    total = []
     earliest = []
     oldest = []
     long_summaries = []
     duplicates = None
     
+    cur.execute("SELECT COUNT(*) FROM articles;")
+    total.append(cur.fetchall()[0])    
     for i in outlets:
         cur.execute("SELECT outlet,COUNT(title) FROM articles WHERE outlet = ?",(i,))
-        article_count.append(cur.fetchall()[0])
+        article_count.append(cur.fetchall()[0])        
         cur.execute("SELECT published_at,outlet,title,link FROM articles WHERE outlet = ? ORDER BY published_at DESC LIMIT 1",(i,))
         earliest.append(cur.fetchone())
         cur.execute("SELECT published_at,outlet,title,link FROM articles WHERE outlet = ? ORDER BY published_at LIMIT 1",(i,))
@@ -86,6 +89,7 @@ Find duplicate titles if any exist ✓"""
     
     for i in article_count:
         print(f"Articles in {i[0].upper()}: {i[1]}")
+    print(f"\n\nTOTAL ARTICLES: {total[0][0]}\n")
         
     print("Displaying EARLIEST articles\n\n\n")
     print("—+" * 25)
