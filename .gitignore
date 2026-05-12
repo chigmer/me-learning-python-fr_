@@ -213,3 +213,6 @@ xkcd_comics/
 
 #db files are unnecessary rn
 *.db
+
+#dump.txt is useless, and storage consuming
+dump.txt
