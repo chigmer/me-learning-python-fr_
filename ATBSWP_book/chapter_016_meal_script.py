@@ -72,7 +72,7 @@ def main():
         user = input("[VIEW]>").strip().lower()
         if user == "--help":
             print("COMMANDS:\n-view\n-insert\n-exit\n\nThis program will show the ingredients of a meal you type, or what meals use an ingredient that you've typed.\n\nAlternatively, you can also insert a dish yourself, simply type 'insert' to switch to 'writing mode'\n(NOTE: you must manually type 'view' if you want to back to viewing mode)\n\nTo insert a dish, follow the command below.\n\nUsage:\n<dish_name>: <ingredient_1>,<ingredient_2>,...\n\nExample Usage 1:\n>insert\n>fried eggs: egg\n\nExample Usage 2:\n>insert\n>onigiri:rice, nori, salt, sesame seeds\n\nView Mode:\ntype in any ingredient or dish, and itll automatically look up the database for you and display the appropriate information")   
-            print("Exiting the Food Lookup Fiasco\n\nsimply type in 'exit'.\n\nExample Usage:\n\n>exit (it will exit shortly)")    
+            print("\n\nExiting the Food Lookup Fiasco:\nsimply type in 'exit'.\n\nExample Usage:\n\n>exit (it will exit shortly)")    
         elif user == "insert":
             while True:
                 user_dish = input("[INSERT]>")
