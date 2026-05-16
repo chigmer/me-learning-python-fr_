@@ -216,3 +216,7 @@ xkcd_comics/
 
 #dump.txt is useless, and storage consuming
 dump.txt
+
+#chapter 18, redundant test/output files
+CSV_noHeader/
+*.csv
