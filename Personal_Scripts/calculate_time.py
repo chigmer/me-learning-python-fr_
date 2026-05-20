@@ -1,5 +1,4 @@
-time_1 = 1,50
-time_2 = 2,45
+
 def format_duration(total_minutes):
     hours = total_minutes // 60
     minutes = total_minutes % 60
