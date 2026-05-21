@@ -6,15 +6,15 @@ def format_duration(total_minutes):
     parts = []
 
     if hours:
-        parts.append(f"{hours} hour" + ("s" if hours != 1 else ""))
+        parts.append(f"{hours}hr" + ("s" if hours != 1 else ""))
 
     if minutes:
-        parts.append(f"{minutes} minute" + ("s" if minutes != 1 else ""))
+        parts.append(f"{minutes} min" + ("s" if minutes != 1 else ""))
 
     if not parts:
         return "0 minutes"
 
-    return " and ".join(parts)
+    return " ".join(parts)
 def calculate(a:tuple,b:tuple):
     total = (a[0] * 60) + (b[0] * 60) + a[1] + b[1]
     return total
