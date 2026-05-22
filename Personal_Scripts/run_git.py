@@ -32,7 +32,7 @@ def main():
     add = sp.run(["git","add","."],capture_output=True,text=True)
     check_err(add)
     while True:
-        user = input("commit msg:\n\n>").strip()
+        user = input("Commit Message:\n\n>").strip()
         if not user:
             print("commit message must not be empty")
             continue
