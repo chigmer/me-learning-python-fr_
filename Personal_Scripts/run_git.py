@@ -29,7 +29,12 @@ def main():
     choice = yes_or_no("Add Files?")
     if not choice:
         sys.exit(0)
-    add = sp.run(["git","add","."],capture_output=True,text=True)
+    root = sp.check_output(
+    ["git", "rev-parse", "--show-toplevel"],
+    text=True
+).strip()
+
+    add = sp.run(["git","add",root],capture_output=True,text=True)
     check_err(add)
     while True:
         try:
