@@ -32,16 +32,21 @@ def main():
     add = sp.run(["git","add","."],capture_output=True,text=True)
     check_err(add)
     while True:
-        user = input("Commit Message>").strip()
-        if not user:
-            print("commit message must not be empty")
-            continue
-        elif len(user) <= 3:
-            print("I wouldnt do that if I were you. ")
-            continue
+        try:
+            user = input("Commit Message>").strip()
+            if not user:
+                print("commit message must not be empty")
+                continue
+            elif len(user) <= 3:
+                print("I wouldnt do that if I were you. ")
+                continue
             #etiquette
-        else:
-            break
+            else:
+                break
+        except KeyboardInterrupt:
+            sys.exit(0)
+            #adding this because it genuinely committed it without me knowing before
+            
     commit = sp.run(
     ["git","commit","-m",user],
     capture_output=True,
