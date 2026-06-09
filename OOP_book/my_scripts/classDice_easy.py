@@ -9,4 +9,6 @@ class Dice():
         print(f"You rolled:\n\n{value}")
 if __name__ == "__main__":
     dice = Dice()
-    dice.roll()
+    for _ in range(5):
+        dice.roll()
+    
