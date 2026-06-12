@@ -8,21 +8,17 @@ def main():
     #test Data
     names = ["Joe Schmoe", "Mary M.", "Al Sweigart"]
     balance= [random.randint(500,1000) for _ in range(3)]
-    passwords = "password"
     for i in range(3):
-        current_Acc = BankAccount(names[i],passwords,balance[i])
-        myBank[gen_fingerprint(f"{names[i]}{random.randint(1,9999)}")] = current_Acc
-        #the ID's will change everytime its executed
+        current_Acc = BankAccount(names[i],"password",balance[i])
+        myBank[gen_fingerprint(f"{names[i]}")] = current_Acc
     print(f"Total Accounts: {len(myBank)}") 
     print()
     print("Pick from any ID's listed below.\n\nevery account password is \"password\"\n('q' to quit)\n\n")
-    
+    for i in myBank:
+        print(i,"\n")
     
     while True:
-        #letting the user check accounts
-        for i in myBank:
-            print(f"{i}\n")
-        
+        #letting the user check accounts                
         user = input(">").strip()
         if user == "q" or user == "Q":
             break
@@ -67,4 +63,5 @@ def main():
         
         
 if __name__ == "__main__":
-    main()             
+    main()     
+    print("\nVery clunky right now, will improve it I promise")        
