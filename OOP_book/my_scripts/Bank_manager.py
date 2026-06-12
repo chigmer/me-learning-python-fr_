@@ -1,17 +1,4 @@
-#bank account – SelfMade
-#bank account format.:
-#ID int, Name str, Amount float
-
-
-
-
-
-#actions:
-#show account info
-#Show balance
-#deposit
-#withdraw
-
+#old class, Account obj
 class BankAccount:
     def __init__(self,name:str,password:str,amount: int | float):        
         if not isinstance(name,str):
@@ -33,10 +20,8 @@ class BankAccount:
         self.name = name
         self.balance = amount
         self.password = password.strip()
-    def show(self) -> None:        
-        print("Account info:\n")        
-        print(f"name: {self.name}")
-                
+    def show(self) -> None:               
+        print(f"name: {self.name}")        
     def check_balance(self,password) -> None:
         if password.strip() != self.password:
             print("Invalid password")
@@ -69,16 +54,54 @@ class BankAccount:
         print(f"withdrawing {amount} from {self.name}...")
         self.balance -= amount
         print(f"Remaining balance: {self.balance}")
-        
+class BankManager():
+    def __init__(self):
+        self.accountDict = {}
+        self.currentID = 0
+    def add(self,account:BankAccount):
+        if not isinstance(account, BankAccount):
+            raise TypeError("method only accepts local 'BankAccount' objects.")
+        else:
+            self.accountDict[self.currentID] = account
+    def show_accounts(self):
+        for account in self.accountDict.values():
+            account.show()
+            
 if __name__ == "__main__":
-    
+    Bank = BankManager()
     obj_bank_account = BankAccount("Joe","soup",1500)
-    obj_bank_account.show()
-    print()
-    obj_bank_account.check_balance("soup")
-    print()
-    obj_bank_account.deposit("soup",50)
-    print()
-    obj_bank_account.withdraw("soup",50)
+   
+    Bank.add(obj_bank_account)
+    Bank.show_accounts()
+    print("Done")
+    #print(type(obj_bank_account).__name__)
     
+    
+    
+    
+    """class BankAccount(builtins.object)                          |  BankAccount(name: str, password: str, amount: int | float)
+ |
+ |  Methods defined here:
+ |
+ |  __init__(self, name: str, password: str
+, amount: int | float)
+ |      Initialize self.  See help(type(self)) for accurate signature.
+ |
+ |  check_balance(self, password)
+ -> None
+ |
+ |  deposit(self, password, amount)
+ |
+ |  show(self) -> None
+ |
+ |  withdraw(self, password, amount)
+ |
+ |  ----------------------------------------------------------------------
+ |  Data descriptors defined here:
+ |
+ |  __dict__
+ |      dictionary for instance variables
+ |
+ |  __weakref__
+ |      list of weak references to the object"""
         
