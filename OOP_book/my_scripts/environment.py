@@ -21,27 +21,33 @@ class Entity():
 
         #print(f"POS: {self.x},{self.y}")
 class World():
-    def __init__(self,max_row,max_column,*entities):
+    def __init__(self,max_row,max_column,entities=None,empty_cell= "-"):
+        self.entities = entities if entities is not None else []
         self.max_row = max_row
         self.max_column = max_column
+        self.empty_cell = empty_cell.center(len(empty_cell) + 2)  
         self.entities = entities
     def render(self):
-        grid = [[" - " for _ in range(self.max_row)] for _ in range(self.max_column)]
+        grid = [[self.empty_cell for _ in range(self.max_row)] for _ in range(self.max_column)]        
         for entity in self.entities:
             x_pos = entity.x
             y_pos = entity.y
-            grid[y_pos][x_pos] = f" {entity.icon} "
+            collision = f"{(grid[y_pos][x_pos]).strip()}{entity.icon}"
+            grid[y_pos][x_pos] = f" {entity.icon} " if grid[y_pos][x_pos] == self.empty_cell else collision.center(len(collision) + 2)
             #nested lists are so confusing.
-         
+        
         for row in grid:
             print("".join(row))
     def print_entities(self):
         unique_entities = []
         for entity in self.entities:
-            unique_entities.append((entity.icon,entity.name))
+            unique_entities.append((entity.icon,entity.name,entity.range_))
         unique_entities= list(set(unique_entities))
         for i in unique_entities:
-            print(f"{i[0]}: {i[1]}\n")
+            print(f"{i[0]}: {i[1]}\nSpeed: {i[2]}")
+    def move_entities(self):
+        for entity in self.entities:
+            entity.move()
         
         
         
@@ -49,22 +55,23 @@ class World():
                 
 
 def main():
-    Tree1 = Entity("Tree",0,16,10)
-    Tree2 = Entity("Tree",0,16,10)
-    Tree3 = Entity("Tree",0,16,10)
-    Dog = Entity("Dog",2,16,10)
-    Cat = Entity("Cat",3,16,10) 
-    bug1 = Entity("Bug",1,16,10)
-    bug2 = Entity("Bug",1,16,10)
-               
-    Field = World(16,10,Tree1,Tree2,Tree3,Dog,Cat,bug1,bug2)
+    
+    LENGTH = 10
+    WIDTH = 16
+    entity_names = ["Tree"] * 4 + ["Dog","Cat","Bush"]
+    entity = []
+    for name in entity_names:
+        if name == "Tree" or name == "Bush":
+            speed = 0
+        else:
+            speed = random.randint(1,3)
+            
+        entity.append(Entity(name,speed,WIDTH,LENGTH))                     
+    Field = World(WIDTH,LENGTH,entity,empty_cell = "•")
     while True:
-        os.system("cls" if os.name == "nt" else "clear")
-        Dog.move()
-        Cat.move()
-        bug1.move()
-        bug2.move()
+        os.system("cls" if os.name == "nt" else "clear")        
         Field.render()
+        Field.move_entities()
         Field.print_entities()
         time.sleep(1.2)
 #10x15 area!!
