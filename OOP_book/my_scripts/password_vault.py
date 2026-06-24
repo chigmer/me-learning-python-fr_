@@ -1,0 +1,1 @@
+#project idea: password vault using sqlite. must be hashed?
