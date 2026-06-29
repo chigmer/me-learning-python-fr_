@@ -2,8 +2,11 @@ import sqlite3
 from datetime import datetime
 
 class MyVault:
-    def __init__(self):
-        with sqlite3.connect("vault.db") as conn:
+    def __init__(self,vault_name:str):
+        if not isinstance(vault_name,str):
+            raise TypeError
+        self.vault = vault_name
+        with sqlite3.connect(vault_name) as conn:
             cur = conn.cursor()
             cur.execute("""
 CREATE TABLE IF NOT EXISTS vault(
@@ -28,7 +31,7 @@ CREATE TABLE IF NOT EXISTS vault(
 
         data = (platform.lower(), name, password, self._get_now_iso())
         try:
-            with sqlite3.connect("vault.db") as conn:
+            with sqlite3.connect(self.vault) as conn:
                 cur = conn.cursor()
                 cur.execute("INSERT INTO vault (platform, username, password, last_updated) VALUES (?,?,?,?)", data)
         except Exception as err:
@@ -41,7 +44,7 @@ CREATE TABLE IF NOT EXISTS vault(
             raise TypeError(f"username: expected str, got {type(username).__name__}")
 
         try:
-            with sqlite3.connect("vault.db") as conn:
+            with sqlite3.connect(self.vault) as conn:
                 cur = conn.cursor()
                 if platform and not username:
                     cur.execute("SELECT ID, platform, username, password, last_updated FROM vault WHERE platform = ?", (platform.lower(),))
@@ -88,7 +91,7 @@ CREATE TABLE IF NOT EXISTS vault(
 
         values.append(ID)
         try:
-            with sqlite3.connect("vault.db") as conn:
+            with sqlite3.connect(self.vault) as conn:
                 cur = conn.cursor()
                 cur.execute(f"UPDATE vault SET {', '.join(columns)} WHERE ID = ?", values)
         except Exception as err:
@@ -101,7 +104,7 @@ CREATE TABLE IF NOT EXISTS vault(
 
         placeholders = ','.join(['?'] * len(args))
         try:
-            with sqlite3.connect("vault.db") as conn:
+            with sqlite3.connect(self.vault) as conn:
                 cur = conn.cursor()
                 cur.execute(f"DELETE FROM vault WHERE ID IN ({placeholders}) RETURNING *", args)
                 self.deleted = cur.fetchall()
@@ -110,7 +113,7 @@ CREATE TABLE IF NOT EXISTS vault(
 
 
 if __name__ == "__main__":
-    vault = MyVault()
+    vault = MyVault("vault.db")
 
     #vault.add("john_doe", "github", "MyGithubPass123!")
     #vault.add("john_doe", "youtube", "YoutubePass456@")
