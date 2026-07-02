@@ -57,7 +57,7 @@ class Organizer:
     "data": [".json", ".csv", ".xml", ".yaml", ".yml", ".toml", ".sql", ".db"],
     "executables": [".exe", ".msi", ".dmg", ".pkg", ".deb", ".apk"],
     "fonts": [".ttf", ".otf", ".woff", ".woff2"],
-    "misc": []  # catch-all for anything unrecognized
+    # add catch-all for anything unrecognized, 'misc'
 }
         
     def scan(self,max_depth:int=None):
@@ -72,11 +72,32 @@ class Organizer:
             #print(depth,len(depth))
             
             if max_depth is None or len(depth) <= max_depth:
-                self.scanned_files.append((i,len(depth)))
+                self.scanned_files.append(i)
+                
+            #how do I preserve dir strucutre?
+            #do I ignore it and just forcibly move everything to predetermined folders?
         
-            return self
-   def _organize(self):
-       pass
+        return self
+    def _get_category(self,ext):
+        for category,ext_list in self.CATEGORIES.items():
+            if ext[1:] in ext_list:
+                return category
+        return "misc"
+   
+            
+    def organize(self,preserve_structure=True):
+       
+        for file in self.scanned_files:            
+            category = self._get_category(file.suffix.lower())
+            if preserve_structure:
+                #only save the path relative to the base
+                base = self.base_path
+                print(file.relative_to(base))
+                
+               
+                
+           
+       
        #unfinished
       
     def preview(self):
@@ -87,3 +108,6 @@ if __name__ == "__main__":
     Organizer = Organizer()
     Organizer.scan()
     print(Organizer.scanned_files)
+    print("TEST!!!")
+    Organizer.organize()
+    print(Organizer.base_path)
