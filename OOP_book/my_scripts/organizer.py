@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys,shutil
 #File Organizer
 """Downloads
 
@@ -80,34 +81,46 @@ class Organizer:
         return self
     def _get_category(self,ext):
         for category,ext_list in self.CATEGORIES.items():
-            if ext[1:] in ext_list:
+            if ext in ext_list:
                 return category
         return "misc"
    
-            
+    def preview(self):
+        
+        
+        pass
+                                                     
+        
+        
+               
     def organize(self,preserve_structure=True):
+      
        
         for file in self.scanned_files:            
             category = self._get_category(file.suffix.lower())
-            if preserve_structure:
-                #only save the path relative to the base
-                base = self.base_path
-                print(file.relative_to(base))
+            src = file
+            dst = self.base_path / Path(category)
+                       
+            try:
+                dst.mkdir(exist_ok=True)
+                shutil.move(src,dst)                                                                   
+            except Exception as e:
+                print(f"Error: {e}")
+                sys.exit(1)
                 
-               
+                
+                    
                 
            
        
-       #unfinished
-      
-    def preview(self):
-        pass                      
+       
+                        
     def __repr__(self):
         return f"Organizer(path={self.base_path!r})"
 if __name__ == "__main__":
     Organizer = Organizer()
     Organizer.scan()
-    print(Organizer.scanned_files)
+    
     print("TEST!!!")
-    Organizer.organize()
-    print(Organizer.base_path)
+    Organizer.preview()
+   
