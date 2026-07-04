@@ -47,6 +47,7 @@ class Organizer:
         if path.is_file():
             raise ValueError
         self.scanned_files = []
+       
       
         self.CATEGORIES = {
     "images": [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp", ".ico", ".tiff"],
@@ -58,6 +59,7 @@ class Organizer:
     "data": [".json", ".csv", ".xml", ".yaml", ".yml", ".toml", ".sql", ".db"],
     "executables": [".exe", ".msi", ".dmg", ".pkg", ".deb", ".apk"],
     "fonts": [".ttf", ".otf", ".woff", ".woff2"],
+    "misc": []
     # add catch-all for anything unrecognized, 'misc'
 }
         
@@ -82,31 +84,60 @@ class Organizer:
     def _get_category(self,ext):
         for category,ext_list in self.CATEGORIES.items():
             if ext in ext_list:
-                return category
+                if not category == "misc":
+                    return category
         return "misc"
    
-    def preview(self):
-        
-        
-        pass
+    
                                                      
         
         
                
-    def organize(self,preserve_structure=True):
+    def organize(self,preview=True,show_process=True):
+        preview_dict = {}
+        for i in self.CATEGORIES.keys():
+           
+           
+            preview_dict[i] = []
+                    
       
        
         for file in self.scanned_files:            
             category = self._get_category(file.suffix.lower())
-            src = file
-            dst = self.base_path / Path(category)
+            
+            
+            
+            if not preview:
+            
                        
-            try:
-                dst.mkdir(exist_ok=True)
-                shutil.move(src,dst)                                                                   
-            except Exception as e:
-                print(f"Error: {e}")
-                sys.exit(1)
+                try:
+                    src = file
+                    dst = self.base_path / Path(category)
+                    dst.mkdir(exist_ok=True)
+                    if show_process:
+                        print(f"moving {src.name} to {dst.name}")
+                    shutil.move(src,dst)     
+                                                                                  
+                except Exception as e:
+                    print(f"Error: {e}")
+                    sys.exit(1)
+            else:
+                preview_dict[category].append(file.name)
+                
+        for cat,item in preview_dict.items():
+            if item:
+                print(f"{cat}/")                        
+                   
+                for f in item:
+                  
+                    print(f"   |__{f}")
+                            
+                           
+                        
+                        
+                
+                
+                    
                 
                 
                     
@@ -122,5 +153,6 @@ if __name__ == "__main__":
     Organizer.scan()
     
     print("TEST!!!")
-    Organizer.preview()
+    
+    Organizer.organize()
    
