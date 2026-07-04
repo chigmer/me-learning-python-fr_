@@ -1,5 +1,5 @@
 from pathlib import Path
-import sys,shutil
+import sys,shutil,json
 #File Organizer
 """Downloads
 
@@ -17,34 +17,17 @@ Dry-run mode that previews changes without actually moving anything"""
 #preview mode
 #undo
 #duplicate detection
-#empty-folder cleanup
-"""from pathlib import Path
-import re
-
-def find_files(path: Path = Path.cwd(), ext: str = 'txt') -> list[Path]:
-    if not isinstance(path, Path):
-        raise ValueError("expected Path on arg 1")
-    elif not isinstance(ext, str):
-        raise ValueError("expected str on arg 2")
-    elif not path.exists():
-        return []
-
-    if ext == "*":
-        files = [f for f in path.rglob("*") if f.is_file()]
-    else:
-        files = list(path.rglob(f"*.{ext}"))
-    return files"""
-    
-    
+#empty-folder cleanup        
 class Organizer:
     def __init__(self,path=Path.cwd()):
         #path serves as the directory to organize.
         if not isinstance(path,(str,Path)):
             raise TypeError
         self.base_path = Path(path).resolve()
-        if not path.exists():
+        self.logs = "Logs.json"
+        if not self.base_path.exists():
             raise FileNotFoundError
-        if path.is_file():
+        if self.base_path.is_file():
             raise ValueError
         self.scanned_files = []
        
@@ -87,6 +70,19 @@ class Organizer:
                 if not category == "misc":
                     return category
         return "misc"
+    def _log(self,source:list,dst:list):
+        #must have correct indexes.
+        data_to_save = {}
+        for i,src in enumerate(source):
+            data_to_save[src] = dst[i]
+        with open(self.logs,"a") as file:
+            json.dump(data_to_save, file, indent=4)
+    def _extract(self):
+        with open(self.logs, "r") as file:
+            return json.load(file)
+       
+
+        
    
     
                                                      
@@ -100,59 +96,50 @@ class Organizer:
            
             preview_dict[i] = []
                     
-      
+        src_list = []
+        dst_list = []
        
         for file in self.scanned_files:            
-            category = self._get_category(file.suffix.lower())
-            
-            
-            
-            if not preview:
-            
-                       
-                try:
+            category = self._get_category(file.suffix.lower())                                    
+            if not preview:                                   
+                try:                   
                     src = file
                     dst = self.base_path / Path(category)
                     dst.mkdir(exist_ok=True)
                     if show_process:
                         print(f"moving {src.name} to {dst.name}")
-                    shutil.move(src,dst)     
-                                                                                  
+                    #shutil.move(src,dst) 
+                    
+                    src_list.append(f"{str(src)}")          
+                    dst_list.append(f"str(dst)")      
+                    #CONTINUE HERE   
+                                     
                 except Exception as e:
                     print(f"Error: {e}")
                     sys.exit(1)
             else:
                 preview_dict[category].append(file.name)
                 
+        #this loop doesnt run when preview mode is off because the dict is empty 
+        if not preview and src_list and dst_list:
+            self._log(src_list,dst_list)       
+            print(self._extract())
         for cat,item in preview_dict.items():
+            if not preview:
+                break
             if item:
                 print(f"{cat}/")                        
                    
                 for f in item:
                   
-                    print(f"   |__{f}")
-                            
-                           
-                        
-                        
-                
-                
-                    
-                
-                
-                    
-                
-           
-       
-       
-                        
+                    print(f"   |__{f}")                         
     def __repr__(self):
         return f"Organizer(path={self.base_path!r})"
 if __name__ == "__main__":
-    Organizer = Organizer()
-    Organizer.scan()
-    
+    org = Organizer()
+    org.scan().organize(False)
+    #method chaining for a clean one liner
     print("TEST!!!")
     
-    Organizer.organize()
-   
+    
+    print(org.base_path)
