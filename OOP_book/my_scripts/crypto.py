@@ -1,11 +1,7 @@
 #crypto.py, 
 import argparse, requests
-import time,sys
-import random
+import sys
 
-def make_delay():    
-    time.sleep(round(random.triangular(1.5,2.5),3))
-    return 
 
     
     
@@ -30,13 +26,6 @@ def main():
     currency = args.currency
     
     session = requests.Session()
-    headers = {
-    'User-Agent': 'Mozilla/5.0 (X11; Linux; x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'Connection': 'keep-alive',
-}
     link = f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(coins)}&vs_currencies={currency}"
     
     #make_delay()
