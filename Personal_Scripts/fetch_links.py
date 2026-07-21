@@ -76,7 +76,7 @@ def usage_limit():
         db["call_list"] = calls 
         return True       
         
-def main():
+def main(user_link:str):
     session = requests.Session()
     headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux; x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
@@ -87,7 +87,8 @@ def main():
     'Upgrade-Insecure-Requests': '1',
     'Cache-Control': 'max-age=0'
 }
-    link = parse_args()
+    #link = parse_args()
+    link = user_link
     link = normalize_url(link)
     if link is None:
         print("invalid URL")
@@ -107,6 +108,7 @@ def main():
                     print(res_link)
                     print("|")
                 print("------------")
+            return list(links)
                     
             
         else:
@@ -120,3 +122,4 @@ def main():
     
 if __name__ == "__main__":
     main()
+    
