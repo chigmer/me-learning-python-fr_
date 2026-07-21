@@ -1,5 +1,5 @@
 from pathlib import Path
-import json
+import json,time
 #log a function's return value to a json file, specify
 #a path to create the file in
 def log(path=None,filename="logs.json",write_mode="a"):
@@ -24,13 +24,10 @@ def log(path=None,filename="logs.json",write_mode="a"):
                         try:
                             existing = json.load(file)
                         except json.JSONDecodeError:
-                            existing = []  # incase of corruption
-                    if isinstance(existing,list):
-                        content = existing + content
+                            existing = []  # incase of corruption                                                              
+                    if isinstance(existing,dict):
+                        raise TypeError(f"invalid format: {type(content).__name__}")
                     
-                        
-                    elif isinstance(existing,dict):
-                        raise TypeError(f"invalid format {type(content).__name__}")
                       
                     
                             
@@ -46,3 +43,13 @@ def log(path=None,filename="logs.json",write_mode="a"):
             
         return wrapper
     return decorator
+
+@log(path="test_output", filename="results.json", write_mode="a")
+def get_batch():
+    timestamp = int(time.time())
+    return [f"item_{timestamp}_{i}" for i in range(3)]
+
+if __name__ == "__main__":
+    get_batch()  # first call — creates results.json with 3 items
+    get_batch()  # second call — merges in 3 more, file now has 6
+    
