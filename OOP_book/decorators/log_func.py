@@ -4,7 +4,7 @@ import json,time
 #a path to create the file in
 def log(path=None,filename="logs.json",write_mode="a"):
     def decorator(func):
-        def wrapper():
+        def wrapper(*args,**kwargs):
             nonlocal path
             if write_mode.lower() not in ["a","w"]:
                     raise TypeError("invalid write mode")
@@ -13,7 +13,7 @@ def log(path=None,filename="logs.json",write_mode="a"):
               
                 path.mkdir(parents=True,exist_ok=True)
                 filepath = path / filename
-                content = func()
+                content = func(*args,**kwargs)
                 if content is None:
                     return
                 if filepath.exists() and write_mode == "a":
@@ -35,7 +35,7 @@ def log(path=None,filename="logs.json",write_mode="a"):
                 
                     
                 with open(path/filename,"w") as file:
-                    json.dump(content,file)
+                    json.dump(content,file,indent=4)
             except Exception as e:
                 print(e)
                 return

@@ -4,12 +4,12 @@ def retry(num,delay=None):
     """Usage: retry(retry attempts, delay[default is None])"""
     def decorator(func):
         #print("decorator running")
-        def wrapper():           
+        def wrapper(*args,**kwargs):           
             #print("wrapper running")
             nonlocal num
             while num:
                 try:
-                    func()
+                    func(*args,**kwargs)
                     return
                 except Exception as e: 
                     print(e)
