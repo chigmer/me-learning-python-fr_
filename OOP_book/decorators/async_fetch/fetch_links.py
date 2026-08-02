@@ -14,29 +14,24 @@ path  = Path(".fetched_links") / "fetched.json"
 def log(path):
     #runs on @log(path), returns decorator  
     def decorator(func):
-        
         #decorator is the return value of log(path), a function that accepts another function
         #basically (log(path))(main)
-        def wrapper(): 
+        def wrapper(*args, **kwargs): 
         #finally, this function is returned by decorator(main) 
         #replaces the original function with this, logs stuff + runs the original function          
-            path.parent.mkdir(exist_ok=True)
-            data = func()
-            if not data:
-                return                  
+            
+            data = func(*args, **kwargs)  # Get the links from the tuple returned by main
+            if not path.parent.exists():
+                path.parent.mkdir(exist_ok=True)
+            if not data[1]:  # Check if the list of links is empty
+                print("No links found, not writing to file.")
+                return data                  
             with open(path,"w") as f:
-                data = tuple(data)
-                json.dump(data, f, indent=4)       
+                json.dump(data[1], f, indent=4)  
+            return data     
         return wrapper
     return decorator
-    
-    
-    
-        
-            
-          
-                
-        
+
     
 def extract_links(soup, base_url) -> list[str]:
     links = []
@@ -106,7 +101,7 @@ def usage_limit():
         return True       
 @log(path)    
 #immediately calls log(path), then calls decorator(main) (the return value of log(path))
-def main():
+def main(user_link=None):
     session = requests.Session()
     headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux; x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
@@ -117,19 +112,20 @@ def main():
     'Upgrade-Insecure-Requests': '1',
     
 }
-    link = parse_args()
+    link = user_link or parse_args()
     #uncommet for testing
     #link ='https://wikipedia.org'
     link = normalize_url(link)
     if link is None:
         print("invalid URL")
-        sys.exit()
+        raise ValueError("Invalid URL")
 
     try:
         if usage_limit():
-        
+            current_time = time.time()
             res = session.get(link, headers=headers, timeout=10)
             res.raise_for_status()
+            time_elapsed = time.time() - current_time
             soup = BeautifulSoup(res.text,"html.parser")
             #makes a tree (yay)
             links = extract_links(soup,link)
@@ -139,17 +135,20 @@ def main():
                     print(res_link)
                     print("|")
                 print("------------")
-            return links
+                print(links)
+                return time_elapsed,links
+            else:
+                print("No links found.")
+                return time_elapsed, []
+            
                     
             
         else:
             print("Error: too many requests")
-            sys.exit(1)
+            return 0, []
     except Exception as e:
         print(f"Error: {e}")
-        sys.exit(1)
-    
-   
+        return 0, []
     
 if __name__ == "__main__":
-    main()
+    print(type(main("en.wikipedia.org")))  # Call the synchronous main function after the asynchronous calls

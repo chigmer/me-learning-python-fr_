@@ -9,6 +9,7 @@ from pathlib import Path
 import time
 from urllib.parse import urljoin
 #too lazy to make a requirements.txt, will put all of these on a try block
+#Update: added requirements.txt, but still lazy to make a virtual environment, so just use pip install -r requirements.txt
 def extract_links(soup, base_url) -> list[str]:
     links = []
 
@@ -121,5 +122,5 @@ def main(user_link:str):
    
     
 if __name__ == "__main__":
-    main()
+    main("en.wikipedia.org/wiki/Asynchronous_I/O")
     

@@ -1,6 +1,13 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#     "aiohttp",
+#     "beautifulsoup4", 
+# ]
+# ///
+from fetch_links import main
 import asyncio
 import time
-
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import sys
@@ -120,16 +127,25 @@ async def fetch(link: str):
         #sys.exit(1)
 
 #immediately calls log(path), then calls decorator(main) (the return value of log(path))
-async def main():
+async def async_main(*args):
+    current_time = time.time()
     results = await asyncio.gather(
-        fetch("google.com"),
-        fetch("bing.com"),
-        fetch("duckduckgo.com")
+        *(fetch(link) for link in args)
     
     )
     print(f"results: {results}")
-   
-    
+    time_elapsed = time.time() - current_time
+    print(f"Time elapsed for asynchronous requests: {time_elapsed:.2f} seconds")
+def synchronous_main(*links):
+    total_time_elapsed = float(0)
+    for link in links:
+        data = main(link)  # Call the synchronous main function
+        print(data)
+        #time_elapsed = main(link)[0]  # Get the time elapsed from the tuple returned by main
+        #total_time_elapsed += time_elapsed
+    print(f"Total time elapsed for synchronous requests: {total_time_elapsed:.2f} seconds")
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(async_main("https://google.com", "https://bing.com", "https://duckduckgo.com"))
+    synchronous_main("https://google.com", "https://bing.com", "https://duckduckgo.com") # Call the synchronous main function after the asynchronous calls
     
