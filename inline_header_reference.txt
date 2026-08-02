@@ -1,0 +1,10 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#     "httpx",
+#     "pydantic>=2.0",
+#     "numpy==2.5.1",
+# ]
+# [tool.uv]
+# shared = true
+# ///

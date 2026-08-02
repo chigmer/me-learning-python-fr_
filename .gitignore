@@ -220,3 +220,5 @@ dump.txt
 #chapter 18, redundant test/output files
 CSV_noHeader/
 *.csv
+#inline header reminder, though redundant in repository, is useful for testing and debugging
+inline_header.txt
