@@ -24,7 +24,7 @@ def log(path):
             if not path.parent.exists():
                 path.parent.mkdir(exist_ok=True)
             if not data[1]:  # Check if the list of links is empty
-                print("No links found, not writing to file.")
+                #print("No links found, not writing to file.")
                 return data                  
             with open(path,"w") as f:
                 json.dump(data[1], f, indent=4)  

@@ -5,7 +5,7 @@
 #     "beautifulsoup4", 
 # ]
 # ///
-from fetch_links import main
+import fetch_links
 import asyncio
 import time
 from bs4 import BeautifulSoup
@@ -139,10 +139,10 @@ async def async_main(*args):
 def synchronous_main(*links):
     total_time_elapsed = float(0)
     for link in links:
-        data = main(link)  # Call the synchronous main function
+        data = fetch_links.main(link)  # Call the synchronous main function
         print(data)
-        #time_elapsed = main(link)[0]  # Get the time elapsed from the tuple returned by main
-        #total_time_elapsed += time_elapsed
+        time_elapsed = fetch_links.main(link)[0]  # Get the time elapsed from the tuple returned by main
+        total_time_elapsed += time_elapsed
     print(f"Total time elapsed for synchronous requests: {total_time_elapsed:.2f} seconds")
 
 if __name__ == "__main__":
