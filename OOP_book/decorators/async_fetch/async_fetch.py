@@ -5,7 +5,7 @@
 #     "beautifulsoup4", 
 # ]
 # ///
-import fetch_links
+import fetch_links, requests, json, argparse
 import asyncio
 import time
 from bs4 import BeautifulSoup
@@ -121,6 +121,7 @@ async def fetch(link: str):
                         print(res_link)
                         print("|")
                     print("------------")
+                    print(f"links found: {len(links)}")
                 return links
     except Exception as e:
         print(f"Error: {e}")
@@ -133,17 +134,17 @@ async def async_main(*args):
         *(fetch(link) for link in args)
     
     )
-    print(f"results: {results}")
+    #print(f"results: {results}")
     time_elapsed = time.time() - current_time
-    print(f"Time elapsed for asynchronous requests: {time_elapsed:.2f} seconds")
+    print(f"\n\n\nTime elapsed for asynchronous requests: {time_elapsed:.2f} seconds\n\n\n")
 def synchronous_main(*links):
     total_time_elapsed = float(0)
     for link in links:
         data = fetch_links.main(link)  # Call the synchronous main function
-        print(data)
+        #print(f"data: {data}")
         time_elapsed = fetch_links.main(link)[0]  # Get the time elapsed from the tuple returned by main
         total_time_elapsed += time_elapsed
-    print(f"Total time elapsed for synchronous requests: {total_time_elapsed:.2f} seconds")
+    print(f"\n\n\nTime elapsed for synchronous requests: {total_time_elapsed:.2f} seconds\n\n\n")
 
 if __name__ == "__main__":
     asyncio.run(async_main("https://google.com", "https://bing.com", "https://duckduckgo.com"))

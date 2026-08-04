@@ -10,7 +10,9 @@ import time
 from urllib.parse import urljoin
 import json
 #decorator task: make a CRUD decorator (only add becau)
-path  = Path(".fetched_links") / "fetched.json"
+BASE_DIR = Path(__file__).resolve().parent
+path = BASE_DIR / ".fetched_links" / "fetched.json"
+
 def log(path):
     #runs on @log(path), returns decorator  
     def decorator(func):
@@ -21,6 +23,7 @@ def log(path):
         #replaces the original function with this, logs stuff + runs the original function          
             
             data = func(*args, **kwargs)  # Get the links from the tuple returned by main
+            #print(data)
             if not path.parent.exists():
                 path.parent.mkdir(exist_ok=True)
             if not data[1]:  # Check if the list of links is empty
@@ -107,7 +110,7 @@ def main(user_link=None):
     'User-Agent': 'Mozilla/5.0 (X11; Linux; x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
     'Accept-Language': 'en-US,en;q=0.9',
-    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Encoding': 'gzip, deflate',
     'Connection': 'keep-alive',
     'Upgrade-Insecure-Requests': '1',
     
@@ -129,13 +132,16 @@ def main(user_link=None):
             soup = BeautifulSoup(res.text,"html.parser")
             #makes a tree (yay)
             links = extract_links(soup,link)
+            #print(f"links found: {len(links)}")
             if links:
+                
                 print("Links Found:\n----------")
                 for res_link in links:
                     print(res_link)
                     print("|")
                 print("------------")
-                print(links)
+                #print(links)
+                print(f"links found: {len(links)}")
                 return time_elapsed,links
             else:
                 print("No links found.")

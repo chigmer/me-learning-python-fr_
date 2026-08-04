@@ -222,3 +222,5 @@ CSV_noHeader/
 *.csv
 #inline header reminder, though redundant in repository, is useful for testing and debugging
 inline_header.txt
+#redundant test output files
+fetched.json
