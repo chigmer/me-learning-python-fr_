@@ -128,11 +128,18 @@ async def fetch_fact_of_the_day():
             return data.get("text", None)
 
 async def fetch_word_of_the_day():
-    url = 'https://www.apis4librarians.com/wordnik/word-of-the-day'
+    url = 'https://www.merriam-webster.com/word-of-the-day'
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
-            data = await response.json()
+            data = await response.text()
             soup = BeautifulSoup(data, 'html.parser')
+            selector = ""
+            definition = soup.select_one(selector)
+            if definition:
+                return definition.get_text(strip=True)
+            else:
+                print("Definition not found.")
+                return None
 
 async def main():
     # Fetch crypto prices and weather concurrently
@@ -163,4 +170,4 @@ async def main():
 #news aggregator last since the module is synchronous and the rest of the dashboard is asynchronous. This will allow the news aggregator to run after the other tasks have completed.
 
 if __name__ == "__main__":
-    asyncio.run(main())  # Example usage of the fetch_weather function
+    asyncio.run(fetch_word_of_the_day())  # Example usage of the fetch_word_of_the_day function
