@@ -128,9 +128,17 @@ def fetch_xml(link):
 def generate_fingerprint(entry):
     uid = entry.get('id')
     return uid if uid else hashlib.md5(entry.get('title', 'Unnamed').encode()).hexdigest()
-
-def main():
-    args = setup_args()
+#quick fix for the argparse section, making a class with attributes instead
+class Arguments:
+    def __init__(self, outlets=None, all=True, limit=3, mode='brief', database=False):
+        self.outlets = outlets
+        self.all = all
+        self.limit = limit
+        self.mode = mode
+        self.database = database
+def aggregate():
+    args = Arguments() #note to reader : youre free to change the default values here, or even make a function that takes user input for them.
+    #I just wanted to make it convenient for my dashboard
     article_data = []
     if args.outlets:
         # Create a sub-dictionary of just the chosen outlets
@@ -216,5 +224,5 @@ def main():
         print(f"aggregation completed!\nArchiving {len(article_data)} article(s) to database.")
         insert_to_db(article_data)                         
 if __name__ == "__main__":
-    main()
+    aggregate()
 

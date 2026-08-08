@@ -4,8 +4,8 @@ Internet Dashboard - Fetch multiple data sources concurrently using asyncio
 TODO:
     - Fetch top 5 trending crypto prices to USD /
     - Fetch weather for selected address (IP fallback if no address provided) /
-    - Import and integrate preexisting news aggregator
-    - Fetch fun fact of the day
+    - Import and integrate preexisting news aggregator /
+    - Fetch fun fact of the day /
     - Fetch word of the day
     - Get script count from repository
     - Combine all data sources using asyncio.gather() for concurrent execution
@@ -13,8 +13,9 @@ TODO:
 import asyncio
 import aiohttp, requests
 import os,sys
+from bs4 import BeautifulSoup
 
-import news_aggregator
+from news_aggregator import aggregate
 #help(news_aggregator)
 #sys.exit()
 
@@ -126,6 +127,12 @@ async def fetch_fact_of_the_day():
             data = await response.json()
             return data.get("text", None)
 
+async def fetch_word_of_the_day():
+    url = 'https://www.apis4librarians.com/wordnik/word-of-the-day'
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            data = await response.json()
+            soup = BeautifulSoup(data, 'html.parser')
 
 async def main():
     # Fetch crypto prices and weather concurrently
