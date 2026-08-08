@@ -1,0 +1,220 @@
+import argparse
+import random
+import newspaper
+from newspaper import Article
+import feedparser
+import textwrap
+import time
+import re
+import sqlite3
+from datetime import datetime,timedelta
+import hashlib
+def get_now():
+    """Returns the current UTC time formatted for SQLite storage."""
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+def get_expiration():
+    """Returns formatted UTC time subtracted exactly 3 days behind for SQLite DELETE logic """
+    now = datetime.now()   
+    expiration = now - timedelta(days=3)
+    return expiration.strftime('%Y-%m-%d %H:%M:%S')
+
+def insert_to_db(data:list[tuple]):
+    conn = sqlite3.connect("news_aggregator_data.db")
+    cur = conn.cursor()
+    time = get_expiration()
+    for article in data:
+        assert len(article) == 9
+        
+    cur.execute("""CREATE TABLE IF NOT EXISTS articles (    guid TEXT PRIMARY KEY,        -- The 'id' from feedparser (Universal Unique ID)
+    outlet TEXT NOT NULL,         -- 'bbc', 'wired', etc.
+    title TEXT NOT NULL,          -- The headline
+    author TEXT,                  -- oh wow i wonder what this could be
+    link TEXT ,             -- link to full article
+    published_at TEXT,        -- When the outlet says it was posted
+    captured_at TEXT, -- When one fetched it
+    summary TEXT,                 -- The cleaned RSS snippet
+    full_content TEXT         )""")
+    cur.executemany("""INSERT OR IGNORE INTO articles VALUES (?,?,?,?,?,?,?,?,?)""",data)
+    cur.execute("DELETE FROM articles WHERE captured_at <= ?",(time,))
+    conn.commit()
+    
+def strip_tags(text):
+    return re.sub(r'<[^>]*>', '', text)
+
+def make_delay():
+    base = random.triangular(0.9, 2.9, 1.6)
+    return round(base, 2)
+def get_full_text(url):
+    try:
+        # Pass headers to avoid being blocked by simple scrapers
+        config = newspaper.Config()
+        config.browser_user_agent = 'Mozilla/5.0 (X11; Linux; x86_64) Chrome/123.0.0.0'
+        config.request_timeout = 10
+
+        article = Article(url, config=config)
+        article.download()
+        article.parse()
+        
+        if not article.text:
+            return "[Extraction Failed: No text found. Might be a paywall.]"
+        
+        # Wrap the text so it fits the terminal nicely
+        wrapper = textwrap.TextWrapper(width=80, initial_indent="    ", subsequent_indent="    ")
+        return wrapper.fill(article.text)
+    except Exception as e:
+        return f"Failed to extract text: {e}"
+        
+headers = {
+    'User-Agent': 'Mozilla/5.0 (X11; Linux; x86_64) Chrome/123.0.0.0'
+}
+
+def setup_args():
+    parser = argparse.ArgumentParser(
+        description="A news aggregator for someone living under a rock",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+
+    # Selection Logic
+    targets = parser.add_mutually_exclusive_group()
+    targets.add_argument("-o", "--outlets", nargs="+",
+                        choices=['wired','intercept', 'icij', 'bbc', 'npr', 'aljazeera', 'wsj', 'propublica'],
+                        help="Specific sources to fetch")
+                        
+    targets.add_argument("--all", action="store_true", help="Fetch from every configured source")
+
+    # Filter & Output
+    parser.add_argument("-l", "--limit", type=int, default=3, help="Stories per source")
+    # Format
+    parser.add_argument("--mode", choices=['titles', 'brief', 'full'], default='brief',
+                        help="Detail level: titles only, brief snippets, or full text (if possible)")
+    
+    # Utilities
+    #parser.add_argument("--browser", action="store_true", help="Open the top story of each source in your browser")
+    #i dont really need to open it in the browser?
+    
+    parser.add_argument("-db","--database", action="store_true", help="Log these headlines to your SQLite archive")
+
+    return parser.parse_args()
+NEWS_FEEDS = {
+    "wired": "https://www.wired.com/feed/rss",
+    "intercept":"https://theintercept.com/feed/?rss",
+    "icij": "https://www.icij.org/feed/",
+    "bbc": "http://feeds.bbci.co.uk/news/rss.xml",
+    "npr": "https://feeds.npr.org/1001/rss.xml",
+    "aljazeera": "https://www.aljazeera.com/xml/rss/all.xml",
+    "wsj": "https://feeds.a.dj.com/rss/RSSWorldNews.xml",
+    "propublica": "https://feeds.propublica.org/propublica/main"
+}
+def safe_date(entry):
+    return entry.get('published_parsed') or (0,) * 9
+def fetch_xml(link):
+    try:
+    # Use a timeout (in seconds) so you don't hang for 5 minutes
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://www.google.com/'
+        }
+
+        res = feedparser.parse(link,request_headers=headers)
+  
+    
+    except Exception as e:
+        #i do not know the exact error message for this one
+        
+        print(f"something broke: {e}")
+        return None
+    return res
+def generate_fingerprint(entry):
+    uid = entry.get('id')
+    return uid if uid else hashlib.md5(entry.get('title', 'Unnamed').encode()).hexdigest()
+
+def main():
+    args = setup_args()
+    article_data = []
+    if args.outlets:
+        # Create a sub-dictionary of just the chosen outlets
+        to_fetch = {k: NEWS_FEEDS[k] for k in args.outlets}
+    elif args.all: 
+        to_fetch = NEWS_FEEDS
+    else:
+        # Default fallback
+        to_fetch = {"bbc": NEWS_FEEDS["bbc"], "npr": NEWS_FEEDS["npr"]}
+    
+    for outlet,URL in to_fetch.items():
+        time.sleep(make_delay())
+        print(f"\n\nfetching contents on {outlet.upper()}\n")
+        xml = fetch_xml(URL)
+        #quick check to see if if we got anything
+        if not xml:
+            print(f"couldnt find anything on {outlet}. skipping...")
+            continue
+                   
+           
+        else:
+            if xml.status == 403:
+                print(f"Forbidden from {outlet}. skipping")
+                continue
+            elif xml.status == 404:
+                print(f"Resource from {outlet} is not found. skipping...")
+                continue
+            elif not hasattr(xml,"entries"):
+                print(f"{outlet} has no entries, skipping.")
+                continue
+        xml.entries.sort(key=safe_date, reverse=True)
+        #copied this line above
+        i = 1
+        print(f"Lookup for {outlet} is successful.\n\n")
+        print(f"{outlet.upper()}\n\n")
+        time.sleep(1)
+        #parser.add_argument("--mode", choices=['titles', 'brief', 'full'], default='brief',
+                       
+        for story in xml.entries[:args.limit]:
+            
+            captured_at = get_now()
+            timestamp = time.strftime("%Y-%m-%d %H:%M", story.published_parsed) if story.get('published_parsed') else "N/A"
+            author = story.get('author','Unknown')
+            headline = story.title
+            summary = strip_tags(story.get('summary','no summary available'))
+            link = story.get('link', None)
+            
+            print("—" * 50)
+            print(f"\nHeadline {i}: {headline}\n")
+            print(f"Date: {timestamp}\n")
+            i += 1
+            print(f"Author: {author}\n\n")
+            if not args.mode == 'titles':                      
+                print(f"Summary:\n{summary}\n")
+            if args.mode == "brief" or args.mode == "titles":
+                print(f"Link: {story.get('link','no link available')}\n")
+                full_text = None
+            
+  
+            
+            elif args.mode == 'full':                
+                if link:
+                    print("Fetching full article text... (patience is a virtue)")
+                    time.sleep(make_delay())
+                    full_text = get_full_text(story.link)
+                # Just show the first 1000 characters so your terminal doesn't explode
+                    if full_text:
+                        print(f"Full Text:\n{full_text}")
+                    else:
+                        full_text = None
+                        print("unable to fetch full text.\n\n") 
+                else:                          
+                    full_text = None              
+                    print("no link available")
+            #guid,outlet,title,link,published_at,captured_at,summary,full_content
+                        
+            guid = generate_fingerprint(story)
+            
+            data = (guid,outlet,headline,author,link,timestamp,captured_at,summary,full_text)
+            article_data.append(data)
+    time.sleep(2.769696969420)  #funny, right?    
+    if article_data and args.database:  
+        print(f"aggregation completed!\nArchiving {len(article_data)} article(s) to database.")
+        insert_to_db(article_data)                         
+if __name__ == "__main__":
+    main()
+

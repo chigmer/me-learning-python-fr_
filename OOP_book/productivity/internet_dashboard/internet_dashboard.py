@@ -3,7 +3,7 @@ Internet Dashboard - Fetch multiple data sources concurrently using asyncio
 
 TODO:
     - Fetch top 5 trending crypto prices to USD /
-    - Fetch weather for selected address (IP fallback if no address provided)
+    - Fetch weather for selected address (IP fallback if no address provided) /
     - Import and integrate preexisting news aggregator
     - Fetch fun fact of the day
     - Fetch word of the day
@@ -12,7 +12,12 @@ TODO:
 """
 import asyncio
 import aiohttp, requests
-import os
+import os,sys
+
+import news_aggregator
+#help(news_aggregator)
+#sys.exit()
+
 try:
     from dotenv import load_dotenv
 except ImportError:
@@ -112,23 +117,43 @@ async def fetch_weather(city=None):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             data = await response.json()
-            await display_weather_forecast(data)
+            #await display_weather_forecast(data)
             return data
+async def fetch_fact_of_the_day():
+    url = "https://uselessfacts.jsph.pl/api/v2/facts/today"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            data = await response.json()
+            return data.get("text", None)
 
 
 async def main():
     # Fetch crypto prices and weather concurrently
     print("---------------\nInternet Dashboard \n\n")
-    print("Fetching crypto prices and weather data concurrently...")
+    print("Fetching crypto prices. weather and fact of the day concurrently...")
     crypto_task = asyncio.create_task(fetch_crypto_prices())
     weather_task = asyncio.create_task(fetch_weather(None))  # add a city name as a parameter if you want to fetch weather for a specific city
-
-    crypto_data, weather_data = await asyncio.gather(crypto_task, weather_task)
+    fact_task = asyncio.create_task(fetch_fact_of_the_day())
+    crypto_data, weather_data, fact_data = await asyncio.gather(crypto_task, weather_task, fact_task)
 
     # Process and display the fetched data
-    print("Fetched data successfully.")
+    print("Fetched data successfully.\n\n")
+
+
+    #TODO: if a task returns None, handle it neatly instead of skipping printout
+    if crypto_data is None:
+        print("No crypto data fetched.")
+    if weather_data is None:
+        print("No weather data fetched.")
     await display_crypto_prices(crypto_data)
+    print("\n\n")
     await display_weather_forecast(weather_data)
+    if fact_data is None:
+        print("No fact of the day fetched.")
+    else:
+        print(f"Fact of the day: {fact_data}")
+    print("\n\n")
+#news aggregator last since the module is synchronous and the rest of the dashboard is asynchronous. This will allow the news aggregator to run after the other tasks have completed.
 
 if __name__ == "__main__":
     asyncio.run(main())  # Example usage of the fetch_weather function
