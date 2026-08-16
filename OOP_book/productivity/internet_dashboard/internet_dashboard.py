@@ -8,12 +8,13 @@ TODO:
     - Fetch fun fact of the day /
     - Fetch word of the day
     - Get script count from repository
-    - Combine all data sources using asyncio.gather() for concurrent execution
+    - Combine all data sources using asyncio.gather() for concurrent execution /
 """
 import asyncio
 import aiohttp, requests
 import os,sys
 from bs4 import BeautifulSoup
+import re
 
 from news_aggregator import aggregate
 #help(news_aggregator)
@@ -128,19 +129,26 @@ async def fetch_fact_of_the_day():
             return data.get("text", None)
 
 async def fetch_word_of_the_day():
-    url = 'https://www.merriam-webster.com/word-of-the-day'
+    url = 'https://www.merriam-webster.com/wotd/feed/rss2'
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             data = await response.text()
-            soup = BeautifulSoup(data, 'html.parser')
-            selector = ""
-            definition = soup.select_one(selector)
-            if definition:
-                return definition.get_text(strip=True)
-            else:
-                print("Definition not found.")
-                return None
+            soup = BeautifulSoup(data, "xml")
+            item = soup.find("item")
+            word = item.find("title").get_text(strip=True)
+            description_unparsed = item.find("description").get_text()
+            
+            # Get the contents of <description> as text
+            # Second parse: the HTML inside <description>
+            description_soup = BeautifulSoup(description_unparsed, "html.parser")
+            description = description_soup.get_text()
+            print(description)
+            print(word)
+        
 
+            
+         
+            
 async def main():
     # Fetch crypto prices and weather concurrently
     print("---------------\nInternet Dashboard \n\n")
