@@ -6,16 +6,18 @@ TODO:
     - Fetch weather for selected address (IP fallback if no address provided) /
     - Import and integrate preexisting news aggregator /
     - Fetch fun fact of the day /
-    - Fetch word of the day
-    - Get script count from repository
+    - Fetch word of the day /
+    - Get script count from repository /
     - Combine all data sources using asyncio.gather() for concurrent execution /
 """
+import time
 import asyncio
 import aiohttp, requests
 import os,sys
 from bs4 import BeautifulSoup
 import re
-
+import subprocess
+from pathlib import Path
 from news_aggregator import aggregate
 #help(news_aggregator)
 #sys.exit()
@@ -142,40 +144,83 @@ async def fetch_word_of_the_day():
             # Second parse: the HTML inside <description>
             description_soup = BeautifulSoup(description_unparsed, "html.parser")
             description = description_soup.get_text()
-            print(description)
-            print(word)
-        
+            return word, description
+async def display_word_of_the_day(word,description):
+    if not word or not description:
+        print("No word of the day found.")
+        return
+    pattern = r"(.*?)\s*//"
+    match = re.search(pattern, description)
+    if match:
+        description = match.group(1).strip()
+    print(f"\nWord of the day: {word.title()}\nDescription: {description}")
 
-            
+async def count_scripts_in_repo():
+    """Count the number of py scripts in the current repository."""
+    if Path(".temp_repo").exists():
+        os.system("rm -rf .temp_repo")
+    process = await asyncio.create_subprocess_exec("git", "clone", 'https://github.com/chigmer/me-learning-python-fr_', ".temp_repo")
+    return_code = await process.wait()
+    if return_code != 0:
+        print("Failed to clone the repository.")
+        return 0
+    
+    files = list(Path(".temp_repo").rglob("*.py"))
          
-            
+    return len(files)
+
 async def main():
     # Fetch crypto prices and weather concurrently
+    start_time = time.time()
     print("---------------\nInternet Dashboard \n\n")
     print("Fetching crypto prices. weather and fact of the day concurrently...")
     crypto_task = asyncio.create_task(fetch_crypto_prices())
     weather_task = asyncio.create_task(fetch_weather(None))  # add a city name as a parameter if you want to fetch weather for a specific city
     fact_task = asyncio.create_task(fetch_fact_of_the_day())
-    crypto_data, weather_data, fact_data = await asyncio.gather(crypto_task, weather_task, fact_task)
+    word_task = asyncio.create_task(fetch_word_of_the_day())
+    script_count_task = asyncio.create_task(count_scripts_in_repo())
+    crypto_data, weather_data, fact_data, word_data, script_count = await asyncio.gather(crypto_task, weather_task, fact_task, word_task, script_count_task)
 
     # Process and display the fetched data
     print("Fetched data successfully.\n\n")
 
 
     #TODO: if a task returns None, handle it neatly instead of skipping printout
+
+    #crypto
+    print("-+-+-+-+-+-+-\n")
     if crypto_data is None:
         print("No crypto data fetched.")
+    else:
+        await display_crypto_prices(crypto_data)
+    print("-+-+-+-+-+-+-\n")
+    #weather
     if weather_data is None:
         print("No weather data fetched.")
-    await display_crypto_prices(crypto_data)
-    print("\n\n")
-    await display_weather_forecast(weather_data)
-    if fact_data is None:
-        print("No fact of the day fetched.")
     else:
-        print(f"Fact of the day: {fact_data}")
-    print("\n\n")
+        print("\n\n")
+        await display_weather_forecast(weather_data)
+    print("-+-+-+-+-+-+-\n")
+    #fact of the day
+    if fact_data is None:
+        print("\nNo fact of the day fetched.")
+    else:
+        print(f"\nFact of the day: {fact_data}")
+    print("-+-+-+-+-+-+-\n")
+    #word of the day
+    if word_data is None:
+        print("\nNo word of the day fetched.")
+    else:
+        word, description = word_data
+        await display_word_of_the_day(word, description)
+    print("-+-+-+-+-+-+-\n")
+    print(f"\n\nNumber of Python scripts in the repository: {script_count}")
+    end_time = time.time()
+    print("-+-+-+-+-+-+-\n")
+    print(f"\nTotal time taken for asynchronous operations (NOT including news aggregator): {end_time - start_time:.2f} seconds")
+    aggregate()
 #news aggregator last since the module is synchronous and the rest of the dashboard is asynchronous. This will allow the news aggregator to run after the other tasks have completed.
 
 if __name__ == "__main__":
-    asyncio.run(fetch_word_of_the_day())  # Example usage of the fetch_word_of_the_day function
+     # Example usage of the fetch_word_of_the_day function
+    asyncio.run(main())
