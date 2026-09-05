@@ -18,7 +18,12 @@ from bs4 import BeautifulSoup
 import re
 import subprocess
 from pathlib import Path
-from news_aggregator import aggregate
+
+try:
+    from .news_aggregator import aggregate
+except ImportError:
+    from news_aggregator import aggregate
+
 #help(news_aggregator)
 #sys.exit()
 
@@ -35,6 +40,8 @@ except ImportError:
 load_dotenv()  # Load environment variables from .env file
 #api_key = os.getenv("OWP_API_KEY")  # uncomment this line if you have an OpenWeatherMap API key and want to use it
 cg_api_key = os.getenv("CG_API_KEY")  # Get the CoinGecko API key from environment variables
+if not cg_api_key:
+    print("Warning: CoinGecko API key not found in environment variables. Please set CG_API_KEY in your .env file.")
 #print(f"API Key: {api_key}")  # Print the API key to verify it's loaded correctly
 async def display_crypto_prices(data):
     """Display the crypto prices as a simple bullet list instead of a table."""
