@@ -7,6 +7,10 @@ class Todo(BaseModel):
     title: str
     description: str
     status: bool = False
+class Update_Todo(BaseModel):
+         title: str | None
+         description: str | None
+         status: bool |None
 
 app = FastAPI()
 
@@ -28,7 +32,7 @@ def read_todos():
         cur.execute("SELECT * FROM todos")
     data = cur.fetchall()
     if data:
-         return data
+         return {"todos": data}
     else:
          return {"message": "no todos yet, visit /docs to create one"}
 @app.post("/todos/")
@@ -42,6 +46,32 @@ def add_todo(todo: Todo):
                  return {"message": "To-Do written successfully!"}
             except Exception as e:
                  return {"error": e}
+
+
+# put is next
+@app.put("/todos/{id}")
+def update_todo(id: int, todo: Update_Todo):
+    with sqlite3.connect("todos.db") as conn:
+        cur = conn.cursor()
+        #try to update row with id param, return 404 if it doesnt exist?
+        #if a value is set to null in the pydantic model, ignore that column
+        try:
+            dump = todo.model_dump()
+            data = [x for x in dump.items() if x[1] is not None]
+            columns = []
+            values = []
+            for i in data:
+                 columns.append(i[0])
+                 values.append(i[1])
+            # i assume its [("title","example_str"),...]
+            
+            query = f"UPDATE todos SET ({" = ?,".join(columns)}) WHERE id = ?"
+            print(query)
+        except:
+             pass
+
+    
+     
                 
 
 
