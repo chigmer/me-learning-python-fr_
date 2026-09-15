@@ -57,16 +57,17 @@ def update_todo(id: int, todo: Update_Todo):
         #if a value is set to null in the pydantic model, ignore that column
         try:
             dump = todo.model_dump()
-            data = [x for x in dump.items() if x[1] is not None]
-            columns = []
-            values = []
-            for i in data:
-                 columns.append(i[0])
-                 values.append(i[1])
+            data = {key: value for key, value in dump.items() if value is not None}
+
+        # There is nothing to update.
+            if not data:
+                raise HTTPException(status_code=400, detail="No fields to update")
+
             # i assume its [("title","example_str"),...]
             
             query = f"UPDATE todos SET ({" = ?,".join(columns)}) WHERE id = ?"
-            print(query)
+            cur.execute(query,tuple(values))
+
         except:
              pass
 
