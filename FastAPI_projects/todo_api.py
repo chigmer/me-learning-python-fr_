@@ -8,9 +8,9 @@ class Todo(BaseModel):
     description: str
     status: bool = False
 class Update_Todo(BaseModel):
-         title: str | None
-         description: str | None
-         status: bool |None
+         title: str | None = None
+         description: str | None = None
+         status: bool |None = None
 
 app = FastAPI()
 
@@ -49,7 +49,7 @@ def add_todo(todo: Todo):
 
 
 # put is next
-@app.put("/todos/{id}")
+@app.patch("/todos/{id}")
 def update_todo(id: int, todo: Update_Todo):
     with sqlite3.connect("todos.db") as conn:
         cur = conn.cursor()
@@ -58,18 +58,26 @@ def update_todo(id: int, todo: Update_Todo):
         try:
             dump = todo.model_dump()
             data = {key: value for key, value in dump.items() if value is not None}
+            column_q = ""
+            values = tuple(data.values())
 
+            for k in data.keys():
+                column_q += f"{k} = ?,"
         # There is nothing to update.
+            
             if not data:
                 raise HTTPException(status_code=400, detail="No fields to update")
 
             # i assume its [("title","example_str"),...]
             
-            query = f"UPDATE todos SET ({" = ?,".join(columns)}) WHERE id = ?"
-            cur.execute(query,tuple(values))
+            query = f"UPDATE todos SET {column_q} WHERE id = ?"
+            cur.execute(query,values)
+            
 
         except:
-             pass
+            raise HTTPException(status_code=500, detail="server error, sorry!")
+    return {"message": "updated successfully"}
+            
 
     
      
