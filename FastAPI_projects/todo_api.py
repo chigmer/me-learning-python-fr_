@@ -58,11 +58,11 @@ def update_todo(id: int, todo: Update_Todo):
         try:
             dump = todo.model_dump()
             data = {key: value for key, value in dump.items() if value is not None}
-            column_q = ""
+            column_q = []
             values = tuple(list(data.values()) + [id])
 
             for k in data.keys():
-                column_q += f"{k} = ?,"
+                column_q.append(f"{k} = ?")
         # There is nothing to update.
             
             if not data:
@@ -70,12 +70,12 @@ def update_todo(id: int, todo: Update_Todo):
 
             # i assume its [("title","example_str"),...]
             
-            query = f"UPDATE todos SET {column_q} WHERE id = ?"
+            query = f"UPDATE todos SET {", ".join(column_q)} WHERE id = ?"
             cur.execute(query,values)
             
 
-        except:
-            raise HTTPException(status_code=500, detail="server error, sorry!")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"server error, sorry! \nerror: {e}")
     return {"message": "updated successfully"}
 
 # 9/21, making progress on delete ig
