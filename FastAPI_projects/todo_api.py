@@ -10,7 +10,7 @@ class Todo(BaseModel):
 class Update_Todo(BaseModel):
          title: str | None = None
          description: str | None = None
-         status: bool |None = None
+         completed: bool |None = None
 
 app = FastAPI()
 
@@ -59,7 +59,7 @@ def update_todo(id: int, todo: Update_Todo):
             dump = todo.model_dump()
             data = {key: value for key, value in dump.items() if value is not None}
             column_q = ""
-            values = tuple(data.values())
+            values = tuple(list(data.values()) + [id])
 
             for k in data.keys():
                 column_q += f"{k} = ?,"
@@ -77,6 +77,19 @@ def update_todo(id: int, todo: Update_Todo):
         except:
             raise HTTPException(status_code=500, detail="server error, sorry!")
     return {"message": "updated successfully"}
+
+# 9/21, making progress on delete ig
+
+@app.delete("/todos/{id}")
+def delete_todo(id: int):
+    with sqlite3.connect("todos.db") as conn:
+        cur = conn.cursor()
+        try:
+            cur.execute("""DELETE from todos WHERE id = ?""",(id,))
+            return {"message":"todo deleted successfully."}
+        except:
+            return HTTPException(status_code=400,detail="Deletion could not be completed, check the ID inputted")
+     
             
 
     
